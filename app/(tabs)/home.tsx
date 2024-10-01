@@ -1,6 +1,6 @@
 import { StyleSheet,View, Text } from 'react-native'
 import React from 'react'
-
+//Check kar
 const Page = () => {
   return (
     <View style={styles.container}>
