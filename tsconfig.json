@@ -12,7 +12,9 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "assets/icons.js",
+    "env.d.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "assets/icons.js"  ]
+  ]
 }
