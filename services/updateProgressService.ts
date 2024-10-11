@@ -1,30 +1,23 @@
-import { supabase } from "../supabase/supabase";
+import { supabase } from "@/supabase/supabase"; // Ensure you have initialized supabase client
 
 export const updateLessonProgress = async (
-  userId: string | null,
-  lessonId: string | null,
-  isCompleted: boolean,
-  lastAccessed: string // Should be a valid ISO timestamp string
-): Promise<void> => {
-  console.log("Updating progress for lesson ID:", lessonId);
-  console.log("For user with ID:", userId);
-
-  // Check if userId or lessonId is null
-  if (!userId || !lessonId) {
-    throw new Error("User ID and Lesson ID must not be null.");
+  userId: string,
+  lessonId: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('progress')
+      .update({ is_completed: true, last_accessed: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('lesson_id', lessonId)
+      .select();
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data;
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update progress.");
   }
-
-  // Call the RPC function "update_lesson_progress"
-  const { data, error } = await supabase.rpc("update_lesson_progress", {
-    p_user_id: userId,        // Exact parameter names as in the function
-    p_lesson_id: lessonId,
-    p_is_completed: isCompleted,
-    p_last_accessed: lastAccessed
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data; // Optionally return data, if any
 };

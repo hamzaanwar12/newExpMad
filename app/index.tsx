@@ -9,16 +9,80 @@ import { router } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useSelector } from 'react-redux';
 import { RootState } from "@/store/store";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/store/userSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "@/supabase/supabase"; // Adjust based on your Supabase config
+
+
 
 const Index: React.FC = () => {
+
+
+
+
   const animation = useRef<LottieView>(null);
-  
+  const dispatch = useDispatch()
   // Access the token from the Redux store
   const user = useSelector((state: RootState) => state.user);
-  console.log("User : ",user)
+  // console.log("User : ",user)
   // useEffect(() => {
   //   console.log('Token:', token);
   // }, [token]);
+
+
+
+  
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (token) {
+          // Fetch user data using the token
+          const { data, error } = await supabase.auth.getUser(token);
+          if (data.user && !error) {
+            const userId = data.user.id;
+  
+            // Fetch additional user details
+            const { data: userData, error: userError } = await supabase
+              .from("users")
+              .select("*")
+              .eq("id", userId)
+              .single();
+  
+
+              console.log("User Data:", userData);
+              
+            if (userData && !userError) {
+              dispatch(
+                setUser({
+                  userId: userId,
+                  username: userData.userName || "",
+                  userEmail: data.user.email || "",
+                  token: token,
+                  profile: userData.profile_picture_url,
+                  // ... other fields
+                })
+              );
+              router.push("/(tabs)"); // Redirect to Home page
+            } else {
+              // Token invalid or user details not found
+              await AsyncStorage.removeItem("userToken");
+            }
+          } else {
+            // Token invalid or user not found
+            await AsyncStorage.removeItem("userToken");
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load token:", e);
+      }
+    };
+  
+    checkToken();
+  }, [dispatch]);
+  
+
 
   console.log(process.env.EXPO_PUBLIC_SUPABASE_URL);  
   console.log(process.env.EXPO_PUBLIC_SUPABASE_API_KEY);  

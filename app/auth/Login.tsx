@@ -22,15 +22,31 @@ const Login = () => {
           // Fetch user data using the token
           const { data, error } = await supabase.auth.getUser(token);
           if (data.user && !error) {
-            dispatch(
-              setUser({
-                userId: data.user.id,
-                username: data.user.user_metadata.full_name || "",
-                userEmail: data.user.email || "",
-                token: token,
-              })
-            );
-            router.push("/(tabs)"); // Redirect to Home page
+            const userId = data.user.id;
+  
+            // Fetch additional user details
+            const { data: userData, error: userError } = await supabase
+              .from("users")
+              .select("*")
+              .eq("id", userId)
+              .single();
+  
+            if (userData && !userError) {
+              dispatch(
+                setUser({
+                  userId: userId,
+                  username: userData.userName || "",
+                  userEmail: data.user.email || "",
+                  token: token,
+                  profile: userData.profile_picture_url,
+                  // ... other fields
+                })
+              );
+              router.push("/(tabs)"); // Redirect to Home page
+            } else {
+              // Token invalid or user details not found
+              await AsyncStorage.removeItem("userToken");
+            }
           } else {
             // Token invalid or user not found
             await AsyncStorage.removeItem("userToken");
@@ -40,49 +56,68 @@ const Login = () => {
         console.error("Failed to load token:", e);
       }
     };
-
+  
     checkToken();
   }, [dispatch]);
+  
 
   const handleLogin = async () => {
     if (!email || !password) {
       setError("Email and Password are required.");
       return;
     }
-
+  
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
+  
     if (authError) {
       console.error("Login Error:", authError.message);
       setError(authError.message);
     } else if (data.session) {
       console.log("Login successful");
-
+  
+      const userId = data.session.user.id;
+      const token = data.session.access_token;
+  
+      // Fetch additional user details from the 'users' table
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("*") // Select specific fields if needed, e.g., "full_name, avatar_url"
+        .eq("id", userId)
+        .single();
+  
+      if (userError) {
+        console.error("Error fetching user details:", userError.message);
+        setError("Failed to fetch user details.");
+        return;
+      }
+  
       // Dispatch user data to Redux store
       dispatch(
         setUser({
-          userId: data.session.user.id,
-          username: data.session.user.user_metadata.full_name || "",
+          userId: userId,
+          username: userData.username || "",
           userEmail: data.session.user.email || "",
-          token: data.session.access_token,
+          token: token,
+          profile: userData.profile_picture_url,
         })
       );
-
+  
       // Store token in AsyncStorage for persistence
       try {
-        await AsyncStorage.setItem("userToken", data.session.access_token);
+        await AsyncStorage.setItem("userToken", token);
       } catch (e) {
         console.error("Failed to save token:", e);
       }
-
+  
       router.push("/(tabs)"); // Redirect to Home page on success
     } else {
       setError("Unexpected error occurred.");
     }
   };
+  
 
   return (
     <View

@@ -69,7 +69,20 @@ import tw from "twrnc";
 import CourseList from "@/components/courses/CoursesListWithLessons"; // Adjust the import path as necessary
 import CourseLayoutList from "@/components/courses/CourseList"; // Adjust the import path as necessary
 
+
+import { useSelector } from 'react-redux';
+import { RootState } from "@/store/store";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/store/userSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function HomeScreen() {
+
+
+  const dispatch = useDispatch()
+  const user = useSelector((state: RootState) => state.user);
+  console.log("User : ",user)
+
   return (
     <View style={tw`bg-white flex-1`}>
       {/* Header Section */}
@@ -88,7 +101,7 @@ export default function HomeScreen() {
                 { fontFamily: "BarlowBold" },
               ]}
             >
-              Hamza
+              {user.username}
             </Text>
           </View>
 

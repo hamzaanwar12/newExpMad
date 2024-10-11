@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -49,19 +49,21 @@ const CourseLesson: React.FC = () => {
 
   const queryClient = useQueryClient();
 
+  // Fetch lesson data with progress using TanStack Query v5 syntax
   const { data, isLoading, error } = useQuery<LessonDetail, Error>({
-    queryKey: ["lessonDetail", lessonId, userId],
+    queryKey: ["lesson", lessonId],
     queryFn: () => fetchLessonWithProgress(userId, lessonId),
-    enabled: !!userId && !!lessonId,
   });
 
-  const mutation = useMutation<void, Error, void>({
+  // Define the mutation using TanStack Query v5 syntax
+  const mutation = useMutation({
     mutationFn: () => updateLessonProgress(userId, lessonId),
     onSuccess: () => {
       Alert.alert("Success", "Lesson marked as completed.");
-      queryClient.invalidateQueries(["lessonDetail", lessonId, userId]);
+      // Invalidate the query to refetch data
+      queryClient.invalidateQueries({ queryKey: ["lesson", lessonId] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       Alert.alert("Error", error.message);
     },
   });
@@ -101,15 +103,23 @@ const CourseLesson: React.FC = () => {
     );
   }
 
-  const { lesson_id, title, content, order, duration, course, progress } = data;
+  const { title, content, order, duration, course, progress } = data;
   const isCompleted = progress.is_completed;
+
+  // Optional: Log isCompleted to verify its value
+  console.log("Is Lesson Completed:", isCompleted);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.lessonTitle}>{title}</Text>
         <View style={styles.progressContainer}>
-          <Text style={[styles.progressText, isCompleted ? styles.completed : styles.pending]}>
+          <Text
+            style={[
+              styles.progressText,
+              isCompleted ? styles.completed : styles.pending,
+            ]}
+          >
             {isCompleted ? "Completed" : "Pending"}
           </Text>
           <Ionicons
@@ -121,13 +131,16 @@ const CourseLesson: React.FC = () => {
       </View>
       <View style={styles.details}>
         <Text style={styles.detailText}>
-          <Ionicons name="reader-outline" size={16} color="#666" /> Order: {order}
+          <Ionicons name="reader-outline" size={16} color="#666" /> Order:{" "}
+          {order}
         </Text>
         <Text style={styles.detailText}>
-          <Ionicons name="time-outline" size={16} color="#666" /> Duration: {duration} mins
+          <Ionicons name="time-outline" size={16} color="#666" /> Duration:{" "}
+          {duration} mins
         </Text>
         <Text style={styles.detailText}>
-          <Ionicons name="person-outline" size={16} color="#666" /> Instructor: {course.instructor_name}
+          <Ionicons name="person-outline" size={16} color="#666" /> Instructor:{" "}
+          {course.instructor_name}
         </Text>
       </View>
       <View style={styles.contentContainer}>
@@ -135,13 +148,31 @@ const CourseLesson: React.FC = () => {
       </View>
       <View style={styles.actionContainer}>
         {!isCompleted ? (
-          <TouchableOpacity style={styles.completeButton} onPress={handleMarkAsCompleted}>
-            <Text style={styles.buttonText}>Mark as Completed</Text>
+          <TouchableOpacity
+            style={styles.completeButton}
+            onPress={handleMarkAsCompleted}
+            disabled={mutation.isLoading} // Disable button while loading
+          >
+            {mutation.isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Mark as Completed</Text>
+            )}
           </TouchableOpacity>
         ) : (
-          <View style={styles.completedLabel}>
-            <Text style={styles.completedLabelText}>You have completed this lesson.</Text>
-          </View>
+          <>
+            <View style={styles.completedLabel}>
+              <Text style={styles.completedLabelText}>
+                You have completed this lesson.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.push(`/CourseDescription/${courseId}`)}
+            >
+              <Text style={styles.backButtonText}>Back to Course</Text>
+            </TouchableOpacity>
+          </>
         )}
       </View>
     </ScrollView>
@@ -256,9 +287,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     width: "100%",
+    marginBottom: 10, // Added margin for spacing
   },
   completedLabelText: {
     color: "#00796B",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  backButton: {
+    backgroundColor: "#6C63FF",
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    alignItems: "center",
+    width: "100%",
+  },
+  backButtonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
