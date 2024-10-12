@@ -38,7 +38,9 @@ const Login = () => {
                   username: userData.userName || "",
                   userEmail: data.user.email || "",
                   token: token,
-                  profile: userData.profile_picture_url,
+                  profile: userData.profile_picture_url||"",
+                  isSubscribed: userData.is_subscribed||false
+                  
                   // ... other fields
                 })
               );

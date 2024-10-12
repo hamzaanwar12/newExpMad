@@ -1,15 +1,15 @@
 // src/components/CourseDescription.tsx
 
 import {
-    View,
-    Text,
-    Image,
-    ScrollView,
-    ActivityIndicator,
-    TouchableOpacity,
-    StyleSheet,
-    Alert,
-  } from "react-native";
+  View,
+  Text,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { fetchCourseById } from "@/services/courseDetailService";
 import { enrollForFree } from "@/services/enrollInCourse";
@@ -18,7 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import * as Progress from 'react-native-progress'; // Install react-native-progress if not already
+import * as Progress from "react-native-progress"; // Install react-native-progress if not already
 
 export interface Lesson {
   lesson_id: string;
@@ -71,7 +71,8 @@ const CourseDescription: React.FC = () => {
   const params = useLocalSearchParams<CourseDescriptionParams>();
   const courseId: string = params["courseId"];
   const user = useSelector((state: RootState) => state.user);
-  const userId:string = user.userId || "";
+  const userId: string = user.userId || "";
+  const isSubscribed = user.isSubscribed || false;
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,10 +81,15 @@ const CourseDescription: React.FC = () => {
   const mutation = useMutation({
     mutationFn: (courseId: string) => enrollForFree(userId, courseId),
     onSuccess: () => {
-      Alert.alert("Enrollment Successful", "You have successfully enrolled in the course.");
+      Alert.alert(
+        "Enrollment Successful",
+        "You have successfully enrolled in the course."
+      );
       setTimeout(() => {
         // Navigate to the first lesson after enrollment
-        router.push(`/EnrolledCourse/${courseId}/${course?.lessons[0]?.lesson_id}`);
+        router.push(
+          `/EnrolledCourse/${courseId}/${course?.lessons[0]?.lesson_id}`
+        );
       }, 1000);
     },
     onError: (error: any) => {
@@ -128,7 +134,9 @@ const CourseDescription: React.FC = () => {
 
   const handleCheckCredentials = () => {
     // Navigate to the Course Completion screen
-    router.push(`/EnrolledCourse/${courseId}/completion/${course?.course_title}`);
+    router.push(
+      `/EnrolledCourse/${courseId}/completion/${course?.course_title}`
+    );
   };
 
   if (loading) {
@@ -193,10 +201,21 @@ const CourseDescription: React.FC = () => {
           >
             <Text style={styles.enrollButtonText}>Enroll For Free</Text>
           </TouchableOpacity>
+        ) : isSubscribed ? (
+          // User is subscribed and course is paid
+          <TouchableOpacity
+            style={styles.enrollButton}
+            onPress={handleEnrollForFree}
+          >
+            <Text style={styles.enrollButtonText}>Enroll as Member</Text>
+          </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.membershipButton} onPress={()=>router.push(`/subscription-plans`)}>
+          <TouchableOpacity
+            style={styles.membershipButton}
+            onPress={() => router.push(`/subscription-plans`)}
+          >
             <Text style={styles.membershipButtonText}>
-              Membership ${course.price}/Mon
+              Membership {course.price}/Mon
             </Text>
           </TouchableOpacity>
         )}
@@ -236,7 +255,9 @@ const CourseDescription: React.FC = () => {
             style={styles.checkCredentialsButton}
             onPress={handleCheckCredentials}
           >
-            <Text style={styles.checkCredentialsButtonText}>Check the Credentials</Text>
+            <Text style={styles.checkCredentialsButtonText}>
+              Check the Credentials
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -277,7 +298,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   infoText: {
     marginLeft: 4,

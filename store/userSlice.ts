@@ -7,7 +7,8 @@ interface UserState {
   username: string;
   userEmail: string;
   token: string;
-  profile?:string;
+  profile?: string;
+  isSubscribed?: Boolean;
 }
 
 const initialState: UserState = {
@@ -15,7 +16,8 @@ const initialState: UserState = {
   username: "",
   userEmail: "",
   token: "",
-  profile:''
+  profile: "",
+  isSubscribed: false,
 };
 
 interface SetUserPayload {
@@ -23,7 +25,8 @@ interface SetUserPayload {
   username: string;
   userEmail: string;
   token: string;
-  profile?:string;
+  profile?: string;
+  isSubscribed?: Boolean;
 }
 
 const userSlice = createSlice({
@@ -35,12 +38,16 @@ const userSlice = createSlice({
       state.username = action.payload.username;
       state.userEmail = action.payload.userEmail;
       state.token = action.payload.token;
+      state.profile = action.payload.profile || "";
+      state.isSubscribed = action.payload.isSubscribed || false;
     },
     clearUser: (state) => {
       state.userId = null;
       state.username = "";
       state.userEmail = "";
       state.token = "";
+      state.profile = "";
+      state.isSubscribed = false;
     },
   },
 });

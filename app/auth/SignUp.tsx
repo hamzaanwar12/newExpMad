@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,9 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { supabase } from "@/supabase/supabase"; // Adjust based on your Supabase config
 import { router } from "expo-router";
-import { useDispatch } from 'react-redux';
-import { setUser } from '../../store/userSlice';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useDispatch } from "react-redux";
+import { setUser } from "../../store/userSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // If you decide to use a hashing library, install and import it here
 // import bcrypt from 'bcryptjs'; // Example: bcryptjs for hashing
@@ -27,74 +26,91 @@ const SignUp = () => {
   const dispatch = useDispatch();
 
   const handleSignUp = async () => {
+    // Basic input validation
     if (!username || !email || !password) {
       setError("Username, Email, and Password are required.");
       return;
     }
 
-    // const saltRounds = 10;
-    // const password_hash = await bcrypt.hash(password, saltRounds);
+    try {
+      // Sign up the user with Supabase Auth
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    // Optionally, you can add validation for username, email, and password here
+      if (authError) {
+        console.error("Sign Up Error:", authError.message);
+        setError(authError.message);
+        return;
+      }
 
-    // **Security Consideration:**
-    // Do NOT store raw passwords. If you need to store a password hash, do it on the server side.
-    // Here's an example using bcrypt (ensure to handle this securely on the server):
-    // const passwordHash = await bcrypt.hash(password, 10);
-
-    // For demonstration, we'll use a dummy hash. **Do not use this in production!**
-    // const dummyPasswordHash = "dummy_hash";
-
-    // Sign up the user with Supabase Auth
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) {
-      console.error("Sign Up Error:", authError.message);
-      setError(authError.message);
-      return;
-    }
-
-    // If sign-up is successful, insert user data into the 'users' table
-    if (data.user) {
-      try {
-        const { error: dbError } = await supabase.from("users").insert({
-          id: data.user.id, // Supabase Auth user ID
-          username: username, // From UI
-          email: data.user.email, // From Auth
-          password_hash: password, // **Replace with actual hash in production**
-          //   password_hash: password_hash, // **Replace with actual hash in production**
-          full_name: username, // Dummy value
-          role: "student", // Default role
-          profile_picture_url: "", // Optional, can be left empty
-          bio: "This is a dummy bio.", // Dummy value
-          is_subscribed: false, // Default value
-          stripe_customer_id: "", // Optional, can be left empty
-        });
+      if (data.user) {
+        // Insert user data into the 'users' table
+        const { data: insertedUser, error: dbError } = await supabase
+          .from("users")
+          .insert({
+            id: data.user.id, // Supabase Auth user ID
+            username: username, // From UI
+            email: data.user.email, // From Auth
+            // password_hash: password, // **Remove this field for security**
+            full_name: username, // Dummy value
+            role: "student", // Default role
+            profile_picture_url:
+              "https://res.cloudinary.com/dmjvyjevz/image/upload/v1728242973/307ce493-b254-4b2d-8ba4-d12c080d6651_k9ziq4.jpg", // Optional, can be left empty
+            bio: "This is a dummy bio.", // Dummy value
+            is_subscribed: false, // Default value
+            stripe_customer_id: "", // Optional, can be left empty
+          })
+          .select()
+          .single(); // Fetch the inserted row
 
         if (dbError) {
           console.error("Database Insert Error:", dbError.message);
           setError("Failed to insert user into the database.");
-          // Optionally, you can choose to delete the authenticated user if database insertion fails
-          await supabase.auth.admin.deleteUser(data.user.id);
-        } else {
 
-          dispatch(
-            setUser({
-              userId: data.user.id,
-              username: data.user.user_metadata.full_name || '',
-              userEmail: String(data.user.email),
-              token: token,
-            })
-          );
-          router.push("/(tabs)");
+          // Sign out the user to maintain data integrity
+          await supabase.auth.signOut();
+          return;
         }
-      } catch (error) {
-        console.error("Unexpected Error:", error);
-        setError("An unexpected error occurred.");
+
+        // Retrieve the session token
+        const session = data.session;
+        const token = session?.access_token;
+
+        if (!token) {
+          setError("Failed to retrieve session token.");
+          return;
+        }
+
+        // Store the token in AsyncStorage for persistence
+        try {
+          await AsyncStorage.setItem("userToken", token);
+        } catch (e) {
+          console.error("Failed to save token:", e);
+          setError("Failed to save session token.");
+          return;
+        }
+        // Dispatch user data to Redux store
+        dispatch(
+          setUser({
+            userId: data.user.id,
+            username: insertedUser.username,
+            userEmail: insertedUser.email,
+            token: token,
+            profile: insertedUser.profile_picture_url || "",
+            isSubscribed: insertedUser.is_subscribed || false,
+          })
+        );
+
+        // Navigate to the desired route
+        router.push("/(tabs)");
+      } else {
+        setError("User data not available after sign-up.");
       }
+    } catch (error: any) {
+      console.error("Unexpected Error:", error);
+      setError("An unexpected error occurred.");
     }
   };
 

@@ -7,9 +7,8 @@ import tw from "twrnc"; // Importing Tailwind for React Native
 import Button from "@/components/Button";
 import { router } from "expo-router";
 import LottieView from "lottie-react-native";
-import { useSelector } from 'react-redux';
+import { useDispatch,useSelector } from 'react-redux';
 import { RootState } from "@/store/store";
-import { useDispatch } from "react-redux";
 import { setUser } from "@/store/userSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@/supabase/supabase"; // Adjust based on your Supabase config
@@ -17,7 +16,6 @@ import { supabase } from "@/supabase/supabase"; // Adjust based on your Supabase
 
 
 const Index: React.FC = () => {
-
 
 
 
@@ -57,11 +55,12 @@ const Index: React.FC = () => {
               dispatch(
                 setUser({
                   userId: userId,
-                  username: userData.userName || "",
+                  username: userData.username || "",
                   userEmail: data.user.email || "",
                   token: token,
                   profile: userData.profile_picture_url,
-                  // ... other fields
+                  isSubscribed: userData.is_subscribed,
+                  
                 })
               );
               router.push("/(tabs)"); // Redirect to Home page
