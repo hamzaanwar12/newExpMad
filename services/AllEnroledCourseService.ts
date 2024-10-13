@@ -1,4 +1,4 @@
-import { supabase } from '../supabase/supabase';
+import { supabase } from '@/supabase/supabase';
 // src/types/interfaces/EnrolledCoursesResponse.ts
 
 export interface EnrolledCourse {

@@ -1,15 +1,11 @@
-// src/types/interfaces/CourseResponse.ts
-
-
 // src/services/courseService.ts
-
-
 
 import { supabase } from '../supabase/supabase';
 import { CoursesResponse } from '@/components/courses/CourseCard';
 
-
-export const fetchPaginatedCourses = async (page: number = 1): Promise<CoursesResponse> => {
+export const fetchPaginatedCourses = async (
+  page: number = 1
+): Promise<CoursesResponse> => {
   const { data, error } = await supabase.rpc('fetch_paginated_courses', { page });
 
   if (error) {
@@ -20,13 +16,9 @@ export const fetchPaginatedCourses = async (page: number = 1): Promise<CoursesRe
     return { basic: [], intermediate: [], advanced: [] };
   }
 
-  console.log()
-
   return {
-    basic: data.basic,
-    intermediate: data.intermediate,
-    advanced: data.advanced,
+    basic: data.basic || [],
+    intermediate: data.intermediate || [],
+    advanced: data.advanced || [],
   };
 };
-
-  
