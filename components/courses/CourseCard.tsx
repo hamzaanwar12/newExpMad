@@ -10,6 +10,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 // import { StackNavigationProp } from '@react-navigation/stack';
+import { EnrolledCourse } from "@/services/AllEnroledCourseService";
+
+
 
 export interface Course {
   course_id: string;
@@ -19,7 +22,7 @@ export interface Course {
   course_duration: string;
   banner_image_url: string;
   lesson_length: number;
-  price?: number; // Added price
+  price: number; // Added price
 }
 
 export interface CoursesResponse {
@@ -29,7 +32,7 @@ export interface CoursesResponse {
 }
 
 interface CourseCardProps {
-  course: Course;
+  course: Course | EnrolledCourse; // Use the EnrolledCourse type
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course }) => {

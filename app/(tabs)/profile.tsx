@@ -17,6 +17,7 @@ import { setUser } from '@/store/userSlice';
 import axios from 'axios';
 import ImageSelector from '@/components/ImageSelector'; // New ImageSelector component
 import { supabase } from '@/supabase/supabase';
+import { router } from 'expo-router';
 // Define environment variables
 const CLOUDINARY_UPLOAD_URL: string = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_URL || ''; // Replace with your Cloudinary URL
 const CLOUDINARY_UPLOAD_PRESET: string = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ''; // Replace with your Upload Preset
@@ -121,19 +122,19 @@ const ProfileScreen: React.FC = () => {
 
       {/* Menu Items */}
       <View style={styles.menuContainer}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => {router.push('/(tabs)')}}>
           <Ionicons name="book-outline" size={24} color="#5D3FD3" />
           <Text style={styles.menuText}>My Course</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => {router.push('/subscription-plans')}}>
           <Ionicons name="shield-checkmark-outline" size={24} color="#5D3FD3" />
           <Text style={styles.menuText}>Upgrade Plan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        {/* <TouchableOpacity style={styles.menuItem}>
           <Ionicons name="podium-outline" size={24} color="#5D3FD3" />
           <Text style={styles.menuText}>Ranking</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        </TouchableOpacity> */}
+        <TouchableOpacity style={styles.menuItem} onPress={() => {router.push('/auth/Logout')}}> 
           <Ionicons name="log-out-outline" size={24} color="#5D3FD3" />
           <Text style={styles.menuText}>Logout</Text>
         </TouchableOpacity>
