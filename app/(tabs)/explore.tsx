@@ -1,18 +1,41 @@
 // src/screens/HomeScreen.tsx
 
-import React from "react";
-import { View, Text, TextInput, ScrollView } from "react-native";
+import React, { useRef, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import tw from "twrnc";
-import CourseLayoutList from "@/components/courses/CourseList"; // Existing component
+import CourseList from "@/components/courses/CourseList"; // Existing component
 import EnrolledCourseList from "@/components/courses/EnrolledCourseList"; // New component
 
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 
 export default function ExploreScreen() {
   const user = useSelector((state: RootState) => state.user);
   console.log("User : ", user);
+
+  // Reference to CourseList to call the refresh method
+  const courseListRef = useRef<{ refresh: () => Promise<void> }>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Handler for pull-to-refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    if (courseListRef.current) {
+      try {
+        await courseListRef.current.refresh();
+      } catch (error) {
+        console.log("Error refreshing courses:", error);
+      }
+    }
+    setRefreshing(false);
+  }, []);
 
   return (
     <View style={tw`bg-white flex-1`}>
@@ -69,8 +92,14 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-      {/* Main Content Section */}
-      <ScrollView style={tw`px-6 py-4`}>
+      {/* Main Content Section with Pull-to-Refresh */}
+      <ScrollView
+        style={tw`px-6 py-4`}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* Available Courses Section */}
         {/* <Text
           style={[
             tw`text-black text-xl font-bold`,
@@ -78,9 +107,10 @@ export default function ExploreScreen() {
           ]}
         >
           Available Courses
-        </Text>
+        </Text> 
 
-        <CourseLayoutList /> */}
+        <CourseList ref={courseListRef} />
+        */}
 
         {/* Enrolled Courses Section */}
         <Text

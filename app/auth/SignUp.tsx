@@ -53,7 +53,7 @@ const SignUp = () => {
             id: data.user.id, // Supabase Auth user ID
             username: username, // From UI
             email: data.user.email, // From Auth
-            // password_hash: password, // **Remove this field for security**
+            password_hash: password, // **Remove this field for security**
             full_name: username, // Dummy value
             role: "student", // Default role
             profile_picture_url:

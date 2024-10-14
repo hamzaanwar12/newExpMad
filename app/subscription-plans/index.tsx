@@ -42,7 +42,7 @@ const SubscriptionPlanScreen: React.FC = () => {
 
   const fetchPaymentSheetParams = async () => {
     try {
-      const response = await fetch(`http://192.168.0.107:5000/payment-sheet`, {
+      const response = await fetch(`http://10.135.16.202:5000/payment-sheet`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

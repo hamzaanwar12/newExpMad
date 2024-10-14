@@ -1,6 +1,12 @@
 // src/components/CourseList.tsx
 
-import { useEffect, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -13,10 +19,15 @@ import {
 import { fetchPaginatedCourses } from "@/services/lyoutCourseService";
 import CourseCard, { Course, CoursesResponse } from "./CourseCard";
 
+// Define the interface for the ref
+interface CourseListRef {
+  refresh: () => Promise<void>;
+}
+
 const { width } = Dimensions.get("window");
 const cardWidth = width * 0.75; // 75% of screen width
 
-const CourseList: React.FC = () => {
+const CourseList = forwardRef<CourseListRef>((props, ref) => {
   const [courses, setCourses] = useState<CoursesResponse>({
     basic: [],
     intermediate: [],
@@ -45,7 +56,7 @@ const CourseList: React.FC = () => {
     return <CourseCard course={item} />;
   };
 
-  // Fetch courses based on the current page and category
+  // Function to fetch courses based on category and page
   const getCourses = async (category: keyof CoursesResponse, currentPage: number) => {
     try {
       console.log(`Fetching ${category} courses for page:`, currentPage);
@@ -76,41 +87,65 @@ const CourseList: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    // Fetch initial courses for all categories
-    const fetchInitialCourses = async () => {
-      await Promise.all([
-        getCourses("basic", pageBasic),
-        getCourses("intermediate", pageIntermediate),
-        getCourses("advanced", pageAdvanced),
-      ]);
-    };
+  // Function to fetch initial courses for all categories
+  const fetchInitialCourses = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setHasMoreBasic(true);
+    setHasMoreIntermediate(true);
+    setHasMoreAdvanced(true);
+    setPageBasic(1);
+    setPageIntermediate(1);
+    setPageAdvanced(1);
+    setCourses({ basic: [], intermediate: [], advanced: [] });
 
-    fetchInitialCourses();
+    try {
+      await Promise.all([
+        getCourses("basic", 1),
+        getCourses("intermediate", 1),
+        getCourses("advanced", 1),
+      ]);
+    } catch (error) {
+      console.log("Error fetching initial courses:", error);
+    }
   }, []);
+
+  // Expose the refresh function to parent components
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      await fetchInitialCourses();
+    },
+  }));
+
+  useEffect(() => {
+    fetchInitialCourses();
+  }, [fetchInitialCourses]);
 
   // Handlers for loading more courses
   const handleLoadMoreBasic = () => {
     if (hasMoreBasic && !loadingMoreBasic && !loading) {
       setLoadingMoreBasic(true);
-      setPageBasic((prevPage) => prevPage + 1);
-      getCourses("basic", pageBasic + 1);
+      const nextPage = pageBasic + 1;
+      setPageBasic(nextPage);
+      getCourses("basic", nextPage);
     }
   };
 
   const handleLoadMoreIntermediate = () => {
     if (hasMoreIntermediate && !loadingMoreIntermediate && !loading) {
       setLoadingMoreIntermediate(true);
-      setPageIntermediate((prevPage) => prevPage + 1);
-      getCourses("intermediate", pageIntermediate + 1);
+      const nextPage = pageIntermediate + 1;
+      setPageIntermediate(nextPage);
+      getCourses("intermediate", nextPage);
     }
   };
 
   const handleLoadMoreAdvanced = () => {
     if (hasMoreAdvanced && !loadingMoreAdvanced && !loading) {
       setLoadingMoreAdvanced(true);
-      setPageAdvanced((prevPage) => prevPage + 1);
-      getCourses("advanced", pageAdvanced + 1);
+      const nextPage = pageAdvanced + 1;
+      setPageAdvanced(nextPage);
+      getCourses("advanced", nextPage);
     }
   };
 
@@ -202,7 +237,7 @@ const CourseList: React.FC = () => {
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   center: {
