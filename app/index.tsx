@@ -1,5 +1,6 @@
 // app/Index.tsx
-
+import 'react-native-get-random-values';
+import 'react-native-crypto';
 import { useRef, useEffect } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeInDown, BounceIn } from "react-native-reanimated"; // Importing the animated library

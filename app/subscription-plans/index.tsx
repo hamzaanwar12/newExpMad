@@ -17,7 +17,7 @@ import {
 import { useRouter } from "expo-router";
 import axios from "axios";
 import { addSubscription } from "@/services/subscriptionService";
-import { useSelector,useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setUser } from "@/store/userSlice";
 
@@ -33,7 +33,7 @@ const SubscriptionPlanScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ card?: string }>({});
   const user = useSelector((state: RootState) => state.user);
-  const userId = user.userId||"";
+  const userId = user.userId || "";
   const dispatch = useDispatch();
 
   const getAmount = () => {
@@ -42,13 +42,16 @@ const SubscriptionPlanScreen: React.FC = () => {
 
   const fetchPaymentSheetParams = async () => {
     try {
-      const response = await fetch(`http://10.135.16.202:5000/payment-sheet`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ amount: getAmount() }),
-      });
+      const response = await fetch(
+        `https://new-exp-stripe.vercel.app/payment-sheet`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ amount: getAmount() }),
+        }
+      );
 
       const { paymentIntent, ephemeralKey, customer } = await response.json();
       return {
@@ -104,7 +107,7 @@ const SubscriptionPlanScreen: React.FC = () => {
         Alert.alert("Success", "Your subscription was successful!");
         dispatch(
           setUser({
-            userId: user.userId||"",
+            userId: user.userId || "",
             username: user.username || "",
             userEmail: user.userEmail || "",
             token: user.token,
@@ -254,7 +257,6 @@ const SubscriptionPlanScreen: React.FC = () => {
     </StripeProvider>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
