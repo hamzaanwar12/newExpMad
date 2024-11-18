@@ -94,6 +94,13 @@ const SubscriptionPlanScreen: React.FC = () => {
   };
 
   const handlePayment = async () => {
+
+    if (!isPaymentViewVisible) {
+      await initializePaymentSheet();
+      return;
+    }
+
+
     setLoading(true);
     try {
       const { error } = await presentPaymentSheet();
@@ -211,7 +218,7 @@ const SubscriptionPlanScreen: React.FC = () => {
         <Text style={styles.securePayment}>Secured by STRIPE PAYMENT</Text>
 
         {/* Payment Modal Overlay */}
-        {isPaymentViewVisible && (
+        {/* {isPaymentViewVisible && (
           <View style={styles.overlay}>
             <View style={styles.paymentContainer}>
               <Text style={styles.modalTitle}>Enter Payment Details</Text>
@@ -252,7 +259,7 @@ const SubscriptionPlanScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        )} */}
       </View>
     </StripeProvider>
   );
